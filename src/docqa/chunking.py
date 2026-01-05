@@ -23,13 +23,39 @@ def chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200) -> List[st
     n = len(text)
 
     while start < n:
-        end = (start + chunk_size, n)
+        end = min(start + chunk_size, n)
         chunk = text[start:end]
         chunks.append(chunk)
 
         if end == n:
             break
 
-        start += start
+        start += step
 
     return chunks
+
+def chunk_document(
+    doc: DocumentText,
+    chunk_size: int = 1000,
+    overlap: int = 200,
+) -> List[Dict[str, Any]]:
+    
+    records: List[Dict[str, Any]] = []
+
+    for page in doc.pages:
+        chunks = chunk_text(page.text, chunk_size=chunk_size, overlap=overlap)
+
+        for i, chunk in enumerate(chunks):
+            records.append(
+                {
+                    "doc_id": doc.doc_id,
+                    "source_path": doc.source_path,
+                    "page": page.page_num,
+                    "chunk_id": f"p{page.page_num}-c{i}",
+                    "text": chunk,
+                }
+            )
+
+    return records
+            
+
